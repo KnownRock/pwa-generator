@@ -79,11 +79,11 @@ export default function FolderList(props) {
       name:'--'
     })
 
-    const [deleted,setDeleted] = useState(false)
+    // const [deleted,setDeleted] = useState(false)
 
     useEffect(_=>{
-      if(deleted) return
-      console.log(id);
+      // if(deleted) return
+      // console.log(id);
       (async _=>{
         var meta = await (await fetch(`./apps/${id}/info.json`)).json()
         setMeta(meta)
@@ -92,7 +92,7 @@ export default function FolderList(props) {
       return ()=>{
         setMeta([])
       };
-    },[deleted])
+    },[])
 
     return (
       <ListItem key={id}>

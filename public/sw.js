@@ -43,41 +43,7 @@ async function installApp(app){
 
 }
 
-/* Start the service worker and cache all of the app's content */
-// self.addEventListener('install', function(e) {
-//   console.log('install',e);
-// });
-
 self.addEventListener('message',async function(e){
-  
-  if(e.data.type == 'update'){
-    var app = e.data.app
-    await installApp(app)
- 
-    e.source.postMessage({
-      type:'update',
-      msg:'done'
-    });
-
-  }
-  if(e.data.type == 'getAppIds'){
-    var xx = await caches.keys()
-    e.source.postMessage({
-      type:'getAppIds',
-      value:xx
-    });
-  }
-
-  if(e.data.type == 'delApp'){
-    var id = e.data.id
-    await caches.delete(id)
-
-    e.source.postMessage({
-      type:'getAppIds',
-      msg:'done'
-    });
-  }
- 
 })
 
 /* Serve cached content when offline */
@@ -96,14 +62,23 @@ self.addEventListener('fetch', function(e) {
 
   var appId = getAppId(url)
   if(appId !== null && appId !==''){
-
+    
     e.respondWith(new Promise(async res=>{
       if(url === HEAD+appId){
         if(e.request.method === 'DELETE'){
           await caches.delete(appId)
           return res(new Response(JSON.stringify({'ok':1})))
         }
+
+        if(e.request.method === 'PUT'){
+          var app = await e.request.json()
+          await installApp(app)
+          return res(new Response(JSON.stringify({'ok':1})))
+        }
       }
+
+      
+  
       
       var isCached = await (caches.has(appId))
       if(!isCached) return new Response('app not inited',{

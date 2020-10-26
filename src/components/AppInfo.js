@@ -18,22 +18,32 @@ import Slide from '@material-ui/core/Slide';
 import AppBar from '@material-ui/core/AppBar';
 import mime from 'mime'
 import cap from '../utils/cap'
+
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import SaveIcon from '@material-ui/icons/Save';
+import PublishIcon from '@material-ui/icons/Publish';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
 import PlayCircleFilledIcon from '@material-ui/icons/PlayCircleFilled';
 import Typography from '@material-ui/core/Typography';
 import Toolbar from '@material-ui/core/Toolbar';
 import notifyService from '../utils/notifyService'
+
+import { v4 as uuidv4 } from 'uuid';
+
 // SaveIcon
 // PlayCircleFilledIcon
 export default function AppInfo(props){
 
+  const initAppId = props.appId
+  const [appId,setAppId] = useState(initAppId)
   const [name, setName] = useState('')
   const [startup,setStartup] = useState('')
   const [icoUrl,setIcoUrl] = useState('')
   const [iconUrl,setIconUrl] = useState('')
 
+  const {onSaved} = props
+  
   const appInfoConfig = [{
     title:'程序名称',
     value:name,
@@ -50,11 +60,16 @@ export default function AppInfo(props){
     title:'PWA 图标url (png)',
     value:iconUrl,
     setValue:setIconUrl
+  },{
+    title:'程序Id',
+    value:appId,
+    setValue:setAppId
   }]
 
   const [fileList, setFileList] = useState([])
   const [type, setType] = useState('file')
-  const {onClose,appId} = props
+  const {onClose} = props
+
 
 
   async function save(){
@@ -85,9 +100,6 @@ export default function AppInfo(props){
           }else{
             reader.readAsText(file)
           }
-
-          
-          
         });      
       }
   
@@ -141,23 +153,32 @@ export default function AppInfo(props){
       })
   
       app.directFileList = files
+
+      await fetch(`./apps/${app.id}`,{
+        method:'PUT',
+        mode: 'cors',
+        body:JSON.stringify(app),
+        headers: {
+          'Content-type': 'application/json'
+        },
+      })
   
       
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', event => {
-          if(event.data.type === 'update'){
-            // window.open(`./apps/${app.id}/index.html`)
-            resolve(1)
-          }
-        });
-        navigator.serviceWorker.ready.then( registration => {
-          console.log('app',app);
-          registration.active.postMessage({
-            type:'update',
-            app
-          });
-        });
-      }
+      // if ('serviceWorker' in navigator) {
+      //   navigator.serviceWorker.addEventListener('message', event => {
+      //     if(event.data.type === 'update'){
+      //       // window.open(`./apps/${app.id}/index.html`)
+      //       resolve(1)
+      //     }
+      //   });
+      //   navigator.serviceWorker.ready.then( registration => {
+      //     console.log('app',app);
+      //     registration.active.postMessage({
+      //       type:'update',
+      //       app
+      //     });
+      //   });
+      // }
       
     })
   }
@@ -165,21 +186,42 @@ export default function AppInfo(props){
     window.open(`./apps/${appId}/index.html`)
   }
 
-  // async function onStart(){
-  //   await save()
-  //   window.open(`./apps/${appId}/index.html`)
-  // }
+  function loadFromMeta(meta){
+    setAppId(meta.id)
+    setName(meta.name)
+    setType('obj')
+    setFileList(meta.fileList)
+    setStartup(meta.startup)
+    setIcoUrl(meta.icoUrl)
+    setIconUrl(meta.iconUrl)
+  }
+
+  async function loadMetaFile(){
+    return new Promise((res,rej)=>{
+      var inp = document.createElement('input')
+      inp.type = 'file'
+      inp.accept="application/json"
+      
+      inp.onchange = (e)=>{
+        var file = e.target.files[0];
+        if (!file) {
+          rej(0);
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          res(JSON.parse(e.target.result))
+        };
+        reader.readAsText(file);
+      }
+      inp.click()
+
+    })
+  }
 
   useEffect(_=>{
     (async _=>{
       var meta = await (await fetch(`./apps/${appId}/meta.json`)).json()
-      setName(meta.name)
-      setType('obj')
-      setFileList(meta.fileList)
-      setStartup(meta.startup)
-      setIcoUrl(meta.icoUrl)
-      setIconUrl(meta.iconUrl)
-      // debugger
+      loadFromMeta(meta)
     })()
     
   },[])
@@ -189,19 +231,31 @@ export default function AppInfo(props){
     <div>
       <AppBar position="fixed" >
         <Toolbar>
-            <IconButton edge="start" color="inherit" onClick={onClose} aria-label="close">
+            <IconButton key="1" edge="start" color="inherit" onClick={onClose} aria-label="close">
               <CloseIcon />
             </IconButton>
-            <Typography variant="h6" style={{width:'100%'}} >
+            <Typography key="2" variant="h6" style={{width:'100%'}} >
               {name}
             </Typography>
-            <IconButton aria-label="save" color="inherit" title="保存" onClick={async _=>{
+            <IconButton key="3" aria-label="save" color="inherit" title="生成id" onClick={async _=>{
+              setAppId(uuidv4())
+            }}>
+              <AutorenewIcon />
+            </IconButton>
+            <IconButton key="4" aria-label="save" color="inherit" title="加载" onClick={async _=>{
+              var app = await loadMetaFile()
+              loadFromMeta(app)
+            }}>
+              <PublishIcon />
+            </IconButton>
+            <IconButton key="5" aria-label="save" color="inherit" title="保存" onClick={async _=>{
               await save()
               notifyService.success('保存成功')
+              onSaved()
             }}>
               <SaveIcon />
             </IconButton>
-            <IconButton aria-label="save" color="inherit" title="启动" onClick={async _=>{
+            <IconButton key="6" aria-label="save" color="inherit" title="启动" onClick={async _=>{
               start()
             }}>
               <PlayCircleFilledIcon />
@@ -218,7 +272,7 @@ export default function AppInfo(props){
         <div style={{height:'56px'}}></div>
         <div className="App" style={{padding:'1em'}}>
           {appInfoConfig.map((el,index)=>{
-            return <TextField key={index}  label={el.title} style={{width:'100%',marginTop:'1em'}} value={el.value} onChange={(e)=>{el.setValue(e.target.value)}} variant="outlined" />
+            return <TextField key={index}  label={el.title} style={{width:'100%',marginTop:'1em'}} value={el.value} onChange={(e)=>{el.setValue(e.target.value)}} variant="outlined"  />
           })}
         {/* <TextField  label="程序名称" style={{width:'100%'}} value={name} onChange={(e)=>{setName(e.target.value)}} variant="outlined" />
         <TextField  label="起始文件Url" style={{width:'100%',marginTop:'1em'}} value={startup}  onChange={(e)=>{setStartup(e.target.value)}} variant="outlined" /> */}
@@ -258,17 +312,17 @@ export default function AppInfo(props){
                             {
                               ({
                                 html:(
-                                  <Button color="primary"  onClick={_=>{setStartup(el.path)}}>
+                                  <Button key="s" color="primary"  onClick={_=>{setStartup(el.path)}}>
                                   起始页
                                   </Button>),
                                 png:(
-                                  [<Button color="secondary" onClick={_=>{setIconUrl(el.path)}}>
+                                  [<Button key="p" color="secondary" onClick={_=>{setIconUrl(el.path)}}>
                                     PWA图标
-                                  </Button>,<Button color="secondary" onClick={_=>{setIcoUrl(el.path)}}>
+                                  </Button>,<Button key="i" color="secondary" onClick={_=>{setIcoUrl(el.path)}}>
                                     网页图标
                                   </Button>]),
                                 ico:(
-                                  <Button color="secondary" onClick={_=>{setIcoUrl(el.path)}}>
+                                  <Button key="i" color="secondary" onClick={_=>{setIcoUrl(el.path)}}>
                                     网页图标
                                   </Button>),
                               })[el.path.match(/\.([^.]*)$/)&&el.path.match(/\.([^.]*)$/)[1]] || <div></div>

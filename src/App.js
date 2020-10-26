@@ -42,6 +42,11 @@ export default function FullScreenDialog() {
     return handleClickOpen
   }
 
+  const [changed,setChanged] = useState(uuidv4())
+  const handleSaved = () =>{
+    setChanged(uuidv4())
+  }
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -78,9 +83,10 @@ export default function FullScreenDialog() {
       {/* {appIds.map(el=><Button style={{margin:'1em'}} variant="outlined" color="primary" onClick={getHandleClickOpen(el)}>
         {el}
       </Button>)} */}
-      <AppList getHandleClickOpen={getHandleClickOpen}></AppList>
+      <AppList getHandleClickOpen={getHandleClickOpen} key={changed}></AppList>
+
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>
-        <AppInfo onClose={handleClose} appId={currentAppId}/>
+        <AppInfo onClose={handleClose} onSaved={handleSaved} appId={currentAppId} />
       </Dialog>
     </div>
   );
