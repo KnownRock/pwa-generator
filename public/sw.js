@@ -1,6 +1,6 @@
 importScripts('./mime.js')
 
-const HEAD = 'http://localhost:3000/apps/'
+const HEAD = 'https://knownrock.github.io/pwa/apps/'// 'http://localhost:3000/apps/'
 const START_URL_INDEX = HEAD.length
 const REGEX_GET_APP_ID = /^[^/]*/
 
@@ -87,10 +87,10 @@ self.addEventListener('fetch', function(e) {
 
       caches.open(appId).then(cache=>{
         if(url === HEAD + `${appId}/logo192.png`){
-          return res(fetch('/logo192.png'))
+          return res(fetch('./logo192.png'))
         }
         if(url === HEAD + `${appId}/favicon.ico`){
-          return res(fetch('/favicon.ico'))
+          return res(fetch('./favicon.ico'))
         }
         
         cache.match(e.request).then(function(response) {

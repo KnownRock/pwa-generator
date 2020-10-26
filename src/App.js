@@ -52,23 +52,6 @@ export default function FullScreenDialog() {
   };
 
   const [currentAppId,setCurrentAppId]= useState("default")
-  const [appIds,setAppIds] = useState([])
-
-  useEffect(() => {
-    if (navigator.serviceWorker) {
-      navigator.serviceWorker.addEventListener('message', event => {
-        if(event.data.type === 'getAppIds'){
-          setAppIds(event.data.value)
-        }
-        
-      });
-      navigator.serviceWorker.ready.then( registration => {
-        registration.active.postMessage({
-          type:'getAppIds',
-        });
-      });
-    }
-  }, [])
 
   return (
     <div>
@@ -79,10 +62,7 @@ export default function FullScreenDialog() {
           <AddIcon />
         </IconButton>
       </MainBar>
-      {/* <Button style={{margin:'1em'}} variant="outlined" color="primary" onClick={_=>{}}>新建</Button> */}
-      {/* {appIds.map(el=><Button style={{margin:'1em'}} variant="outlined" color="primary" onClick={getHandleClickOpen(el)}>
-        {el}
-      </Button>)} */}
+
       <AppList getHandleClickOpen={getHandleClickOpen} key={changed}></AppList>
 
       <Dialog fullScreen open={open} onClose={handleClose} TransitionComponent={Transition}>

@@ -114,7 +114,7 @@ export default function FolderList(props) {
 
             var link = document.createElement("a");
             link.setAttribute("href", URL.createObjectURL(fileBlob));
-            link.setAttribute("download", `${meta.name}.json`);
+            link.setAttribute("download", `${meta.name}.pwp`);
             link.appendChild(document.createTextNode("Save file"));
             link.click()
           }} >

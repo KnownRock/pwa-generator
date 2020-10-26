@@ -16,7 +16,7 @@ import mime from 'mime'
         };
       }
       return {
-        url:'/favicon.ico',
+        url:'./favicon.ico',
         type:'image/png'
       }
     }
@@ -60,7 +60,7 @@ import mime from 'mime'
       "icons": [
 
         {
-          "src": ${(app.iconUrl==='')?`"/logo192.png"`:`"./root${app.iconUrl}"`},
+          "src": ${(app.iconUrl==='')?`"./logo192.png"`:`"./root${app.iconUrl}"`},
           "type": "image/png",
           "sizes": "256x256 192x192 128x128 64x64 32x32 24x24 16x16"
         }

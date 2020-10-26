@@ -200,7 +200,7 @@ export default function AppInfo(props){
     return new Promise((res,rej)=>{
       var inp = document.createElement('input')
       inp.type = 'file'
-      inp.accept="application/json"
+      inp.accept=".pwp"
       
       inp.onchange = (e)=>{
         var file = e.target.files[0];
